@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery - SAR2RGB Converter - ISRO Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a237e',
+                        secondary: '#ff9933',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-md py-3">
+        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="{{ url_for('static', filename='images/isro-logo.png') }}" alt="ISRO Logo" class="h-10 mr-3">
+                <span class="text-xl font-medium text-primary">SAR2RGB Converter</span>
+            </div>
+            <ul class="flex space-x-6">
+                <li><a href="{{ url_for('index') }}" class="text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Home</a></li>
+                <li><a href="{{ url_for('sar2rgb') }}" class="text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">SAR2RGB</a></li>
+                <li><a href="{{ url_for('gallery') }}" class="text-primary bg-blue-50 px-3 py-2 rounded-md">Gallery</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <section class="bg-white rounded-lg shadow-md p-8 mb-8">
+            <h1 class="text-3xl font-bold text-center text-primary mb-8">Image Gallery</h1>
+            
+            {% if input_images or output_images %}
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {% for image in input_images %}
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                            <img src="{{ url_for('static', filename='uploads/' + image) }}" alt="Original SAR Image" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-lg font-medium text-primary mb-2">Original SAR Image</h3>
+                                <p class="text-gray-600 text-sm mb-2">Uploaded on {{ image.split('_')[0] }}</p>
+                                <a href="{{ url_for('static', filename='uploads/' + image) }}" class="text-primary hover:underline text-sm" target="_blank">View Full Size</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    {% for image in output_images %}
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                            <img src="{{ url_for('static', filename='outputs/' + image) }}" alt="Converted RGB Image" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <h3 class="text-lg font-medium text-primary mb-2">Converted RGB Image</h3>
+                                <p class="text-gray-600 text-sm mb-2">Processed on {{ image.split('_')[0] }}</p>
+                                <a href="{{ url_for('static', filename='outputs/' + image) }}" class="text-primary hover:underline text-sm" target="_blank">View Full Size</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <p class="text-xl text-gray-600 mb-6">No images have been processed yet.</p>
+                    <a href="{{ url_for('sar2rgb') }}" class="bg-primary text-white py-3 px-6 rounded-md font-medium hover:bg-blue-900 transition-colors">Convert Your First Image</a>
+                </div>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html> 

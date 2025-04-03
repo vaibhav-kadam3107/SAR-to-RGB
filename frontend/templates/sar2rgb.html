@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAR2RGB Converter - ISRO Theme</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a237e',
+                        secondary: '#ff9933',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-white shadow-md py-3">
+        <div class="max-w-6xl mx-auto px-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <img src="{{ url_for('static', filename='images/isro-logo.png') }}" alt="ISRO Logo" class="h-10 mr-3">
+                <span class="text-xl font-medium text-primary">SAR2RGB Converter</span>
+            </div>
+            <ul class="flex space-x-6">
+                <li><a href="{{ url_for('index') }}" class="text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Home</a></li>
+                <li><a href="{{ url_for('sar2rgb') }}" class="text-primary bg-blue-50 px-3 py-2 rounded-md">SAR2RGB</a></li>
+                <li><a href="{{ url_for('gallery') }}" class="text-gray-700 hover:bg-gray-100 px-3 py-2 rounded-md">Gallery</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <section class="bg-white rounded-lg shadow-md p-8 mb-8">
+            <h1 class="text-3xl font-bold text-center text-primary mb-4">SAR to RGB Image Conversion</h1>
+            <p class="text-lg text-gray-600 text-center mb-8">Upload your SAR (Synthetic Aperture Radar) image to convert it to RGB format using our advanced AI model.</p>
+            
+            <div class="max-w-2xl mx-auto">
+                <form id="uploadForm" class="space-y-6">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-primary hover:bg-blue-50 transition-colors">
+                        <input type="file" id="imageInput" accept=".jpg,.jpeg,.png" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <div class="flex flex-col items-center">
+                            <span class="text-4xl mb-3">📁</span>
+                            <span class="text-lg font-medium">Choose SAR Image</span>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full bg-primary text-white py-3 px-6 rounded-md font-medium hover:bg-blue-900 transition-colors">Convert to RGB</button>
+                </form>
+            </div>
+
+            <div id="result" class="mt-10 hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                    <div class="text-center">
+                        <h3 class="text-xl font-medium text-primary mb-4">Original SAR Image</h3>
+                        <img id="originalImage" src="" alt="Original SAR Image" class="w-full rounded-lg shadow-md">
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-xl font-medium text-primary mb-4">Converted RGB Image</h3>
+                        <img id="processedImage" src="" alt="Processed RGB Image" class="w-full rounded-lg shadow-md">
+                    </div>
+                </div>
+                <div class="flex justify-center space-x-4">
+                    <button onclick="window.location.href='{{ url_for('gallery') }}'" class="bg-secondary text-white py-2 px-6 rounded-md font-medium hover:bg-orange-500 transition-colors">View in Gallery</button>
+                    <button onclick="downloadImage()" class="bg-white text-primary border border-primary py-2 px-6 rounded-md font-medium hover:bg-blue-50 transition-colors">Download Result</button>
+                </div>
+            </div>
+
+            <div id="error" class="mt-6 bg-red-50 text-red-600 p-4 rounded-md text-center hidden"></div>
+        </section>
+    </main>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('imageInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showError('Please select an image file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('originalImage').src = data.input_url;
+                    document.getElementById('processedImage').src = data.output_url;
+                    document.getElementById('result').classList.remove('hidden');
+                    document.getElementById('error').classList.add('hidden');
+                } else {
+                    showError(data.error || 'An error occurred during processing');
+                }
+            } catch (error) {
+                showError('An error occurred while uploading the image');
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            document.getElementById('result').classList.add('hidden');
+        }
+
+        function downloadImage() {
+            const processedImage = document.getElementById('processedImage').src;
+            const link = document.createElement('a');
+            link.href = processedImage;
+            link.download = 'converted_rgb_image.jpg';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html> 
