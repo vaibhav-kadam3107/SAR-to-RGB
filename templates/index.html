@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAR to RGB Converter</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .drop-zone {
+            border: 2px dashed #4a5568;
+            transition: all 0.3s ease;
+        }
+        .drop-zone.dragover {
+            border-color: #4299e1;
+            background-color: #ebf8ff;
+        }
+        .loading {
+            display: none;
+        }
+        .loading.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800">SAR to RGB Converter</h1>
+            <a href="/gallery" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                View Gallery
+            </a>
+        </div>
+        
+        <div class="max-w-2xl mx-auto">
+            <!-- Upload Zone -->
+            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                <div id="drop-zone" class="drop-zone rounded-lg p-8 text-center cursor-pointer">
+                    <div class="space-y-4">
+                        <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                            <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <div class="text-gray-600">
+                            <p class="text-lg font-medium">Drag and drop your image here</p>
+                            <p class="text-sm">or click to select a file</p>
+                        </div>
+                        <p class="text-xs text-gray-500">Supported formats: PNG, JPG, JPEG</p>
+                    </div>
+                    <input type="file" id="file-input" class="hidden" accept=".png,.jpg,.jpeg">
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading" class="loading items-center justify-center space-x-2 mb-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                <span class="text-gray-600">Processing image...</span>
+            </div>
+
+            <!-- Results -->
+            <div id="results" class="bg-white rounded-lg shadow-lg p-6 hidden">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-800">Results</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-medium mb-2 text-gray-700">Original Image</h3>
+                        <img id="original-image" class="w-full rounded-lg shadow" alt="Original image">
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-medium mb-2 text-gray-700">Processed Image</h3>
+                        <img id="processed-image" class="w-full rounded-lg shadow" alt="Processed image">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const originalImage = document.getElementById('original-image');
+        const processedImage = document.getElementById('processed-image');
+
+        // Handle drag and drop events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        dropZone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFiles);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles({ target: { files: files } });
+        }
+
+        function handleFiles(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processImage(file);
+            }
+        }
+
+        function processImage(file) {
+            // Show loading indicator
+            loading.classList.add('active');
+            results.classList.add('hidden');
+
+            // Create form data
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Display original image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                originalImage.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+
+            // Send to server
+            fetch('/process', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    processedImage.src = data.output_url;
+                    results.classList.remove('hidden');
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                alert('Error processing image: ' + error);
+            })
+            .finally(() => {
+                loading.classList.remove('active');
+            });
+        }
+    </script>
+</body>
+</html> 

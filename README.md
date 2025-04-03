@@ -21,6 +21,10 @@ pip install -r requirements.txt
 
 ### Running Inference with ONNX Model
 
+```bash
+python torch2onnx.py
+```
+
 To process images using the ONNX model:
 ```bash
 python onnx_inference.py --model sar2rgb.onnx --input input --output output

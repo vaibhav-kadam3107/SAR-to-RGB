@@ -26,10 +26,19 @@ def predict(input_image, sess):
     return Image.fromarray(output_image)
 
 
-def process_image(input_path, output_path, sess):
+def process_image(input_path, output_path, sess, input_dir):
     try:
         # Load the input image and ensure it's in RGB mode
         input_image = Image.open(input_path).convert("RGB")
+        
+        # If the input is PNG, convert to JPG format
+        if input_path.suffix.lower() == '.png':
+            # Create a temporary JPG path
+            temp_jpg_path = input_path.with_suffix('.jpg')
+            # Save as JPG
+            input_image.save(temp_jpg_path, 'JPEG', quality=95)
+            # Update input_path to use the JPG version
+            input_path = temp_jpg_path
         
         # Perform prediction
         output_image = predict(input_image, sess)
@@ -37,6 +46,11 @@ def process_image(input_path, output_path, sess):
         # Save the output image
         output_image.save(output_path)
         print(f"Processed: {input_path.name} -> {output_path.name}")
+        
+        # Clean up temporary JPG file if it was created
+        if input_path.suffix.lower() == '.jpg' and input_path != input_dir / input_path.name:
+            input_path.unlink()
+            
         return True
     except Exception as e:
         print(f"Error processing {input_path.name}: {str(e)}")
@@ -90,7 +104,7 @@ def main():
     successful = 0
     for input_path in input_files:
         output_path = output_dir / f"{input_path.stem}_processed{input_path.suffix}"
-        if process_image(input_path, output_path, sess):
+        if process_image(input_path, output_path, sess, input_dir):
             successful += 1
 
     print(f"\nProcessing complete!")

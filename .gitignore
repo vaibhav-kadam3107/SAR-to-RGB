@@ -45,3 +45,5 @@ Thumbs.db
 
 # ignore the data used 
 /data/v_2
+
+/static
