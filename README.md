@@ -4,6 +4,28 @@
 
 Follow these steps to set up and run the project:
 
+To run the frontend Open First Terminal
+
+```bash
+cd Frontend
+```
+
+```bash
+npm install --force
+```
+
+```bash
+npm run dev
+```
+
+Now to run the Backend Open second Terminal
+
+```bash
+python backend/app.py
+```
+
+To Just check the Model (Train , Test)
+
 1. Create a virtual environment:
 ```bash
 python -m venv venv

@@ -1,14 +1,16 @@
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_file
 import os
-from werkzeug.utils import secure_filename
-from datetime import datetime
-import cv2
-import numpy as np
+from pathlib import Path
+import onnxruntime as ort
 from PIL import Image
-import io
+import numpy as np
+import uuid
+import shutil
+from datetime import datetime
+from werkzeug.utils import secure_filename
 
 # Get the absolute path to the project directory
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+BASE_DIR = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 
 # Create Flask app with the correct template folder
 app = Flask(__name__, 
@@ -28,94 +30,107 @@ os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def convert_sar_to_rgb(image_path):
-    # Read the image
-    img = cv2.imread(image_path)
-    
-    # Convert to grayscale if not already
-    if len(img.shape) == 3:
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    else:
-        gray = img
-    
-    # Apply histogram equalization
-    equalized = cv2.equalizeHist(gray)
-    
-    # Create RGB channels
-    r = equalized
-    g = cv2.GaussianBlur(equalized, (5, 5), 0)
-    b = cv2.GaussianBlur(equalized, (7, 7), 0)
-    
-    # Merge channels
-    rgb = cv2.merge([r, g, b])
-    
-    return rgb
+def generate_unique_filename(original_filename):
+    # Get timestamp
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    # Get original extension
+    ext = os.path.splitext(original_filename)[1]
+    # Create unique filename with timestamp
+    return f"{timestamp}_{str(uuid.uuid4())[:8]}{ext}"
+
+def predict(input_image, sess):
+    # Preprocess the input image
+    input_image = input_image.resize((256, 256))
+    input_image = np.array(input_image).transpose(2, 0, 1)
+    input_image = input_image.astype(np.float32) / 255.0
+    input_image = (input_image - 0.5) / 0.5
+    input_image = np.expand_dims(input_image, axis=0)
+
+    # Run the model
+    inputs = {sess.get_inputs()[0].name: input_image}
+    output = sess.run(None, inputs)
+
+    # Post-process the output image
+    output_image = output[0].squeeze().transpose(1, 2, 0)
+    output_image = (output_image + 1) / 2
+    output_image = (output_image * 255).astype(np.uint8)
+
+    return Image.fromarray(output_image)
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+@app.route('/sar2rgb')
+def sar2rgb():
+    return render_template('sar2rgb.html')
+
 @app.route('/gallery')
 def gallery():
-    # Get list of processed images
-    images = []
-    for filename in os.listdir(app.config['OUTPUT_FOLDER']):
-        if filename.endswith(('.png', '.jpg', '.jpeg')):
-            input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            output_path = os.path.join(app.config['OUTPUT_FOLDER'], filename)
-            
-            # Get file creation time
-            timestamp = os.path.getctime(output_path)
-            date = datetime.fromtimestamp(timestamp).strftime('%B %d, %Y')
-            
-            images.append({
-                'title': f'SAR Image {filename}',
-                'description': 'Converted SAR to RGB image',
-                'date': date,
-                'url': f'/static/outputs/{filename}'
-            })
+    # Get all input and output images
+    input_images = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) if allowed_file(f)]
+    output_images = [f for f in os.listdir(app.config['OUTPUT_FOLDER']) if allowed_file(f)]
     
-    # Sort images by date (newest first)
-    images.sort(key=lambda x: x['date'], reverse=True)
+    # Sort by creation time (newest first)
+    input_images.sort(key=lambda x: os.path.getctime(os.path.join(app.config['UPLOAD_FOLDER'], x)), reverse=True)
+    output_images.sort(key=lambda x: os.path.getctime(os.path.join(app.config['OUTPUT_FOLDER'], x)), reverse=True)
     
-    return render_template('gallery.html', images=images)
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
+    return render_template('gallery.html', 
+                         input_images=input_images,
+                         output_images=output_images)
 
 @app.route('/process', methods=['POST'])
 def process_image():
     if 'file' not in request.files:
-        return jsonify({'success': False, 'error': 'No file uploaded'})
+        return jsonify({'error': 'No file part'}), 400
     
     file = request.files['file']
     if file.filename == '':
-        return jsonify({'success': False, 'error': 'No file selected'})
+        return jsonify({'error': 'No selected file'}), 400
     
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        output_path = os.path.join(app.config['OUTPUT_FOLDER'], filename)
-        
-        # Save uploaded file
-        file.save(input_path)
-        
         try:
-            # Convert SAR to RGB
-            rgb_image = convert_sar_to_rgb(input_path)
+            # Generate unique filename with timestamp
+            filename = generate_unique_filename(file.filename)
+            input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            output_filename = f"processed_{filename}"
+            output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
             
-            # Save the processed image
-            cv2.imwrite(output_path, rgb_image)
+            # Save uploaded file
+            file.save(input_path)
+            
+            # Load the ONNX model
+            model_path = os.path.join(BASE_DIR, 'sar2rgb.onnx')
+            sess = ort.InferenceSession(model_path)
+            
+            # Process the image
+            input_image = Image.open(input_path).convert("RGB")
+            output_image = predict(input_image, sess)
+            output_image.save(output_path)
             
             return jsonify({
                 'success': True,
-                'output_url': f'/static/outputs/{filename}'
+                'input_url': f'/static/uploads/{filename}',
+                'output_url': f'/static/outputs/{output_filename}'
             })
+            
         except Exception as e:
-            return jsonify({'success': False, 'error': str(e)})
-    
-    return jsonify({'success': False, 'error': 'Invalid file type'})
+            # If there's an error, try to clean up any files that were created
+            if os.path.exists(input_path):
+                os.remove(input_path)
+            if os.path.exists(output_path):
+                os.remove(output_path)
+            return jsonify({'error': str(e)}), 500
+            
+    return jsonify({'error': 'Invalid file type'}), 400
+
+# Add a custom filter for the templates
+@app.template_filter('now')
+def now_filter(format_string):
+    """Return the current time formatted according to format_string"""
+    if format_string == 'year':
+        return datetime.now().year
+    return datetime.now().strftime(format_string)
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)
