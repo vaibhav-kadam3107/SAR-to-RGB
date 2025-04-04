@@ -54,7 +54,7 @@ export default function Home() {
             <div className="relative">
               <div className="relative h-[300px] md:h-[400px] rounded-lg overflow-hidden shadow-lg border-4 border-white">
                 <Image
-                  src="/sar-to-rgb-example.png"
+                  src="/sar-to-rgb-example.jpeg"
                   alt="SAR to RGB Conversion Example"
                   fill
                   className="object-cover"
@@ -203,13 +203,18 @@ export default function Home() {
                 <Button asChild size="lg" className="bg-white text-[#0066b3] hover:bg-white/90">
                   <Link href="/convert">Start Converting Now</Link>
                 </Button>
-                <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="lg"
+                  className="border-white text-[#0066b3] bg-white hover:bg-white/10 hover:text-white"
+                >
                   <Link href="/gallery">Explore Gallery</Link>
                 </Button>
               </div>
             </div>
             <div className="relative h-[250px] rounded-lg overflow-hidden shadow-lg hidden md:block">
-              <Image src="/india-satellite-view.png" alt="India Satellite View" fill className="object-cover" />
+              <Image src="/india-satellite-view.jpg" alt="India Satellite View" fill className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0066b3] to-transparent opacity-70"></div>
               <div className="absolute bottom-4 left-4 right-4 text-white">
                 <p className="font-semibold">Discover the beauty of India from space</p>

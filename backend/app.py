@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 import os
 import datetime
 import uuid
@@ -8,7 +8,7 @@ from PIL import Image
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
 
-# Get the absolute path to the project directory
+# Get absolute path to project directory
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__)
@@ -25,8 +25,16 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
 
 # Load the ONNX model
-model_path = os.path.join(BASE_DIR, 'sar2rgb.onnx')
-session = ort.InferenceSession(model_path)
+ROOT_DIR = os.path.dirname(BASE_DIR)  # Navigate to the root directory
+model_path = os.path.join(ROOT_DIR, 'sar2rgb.onnx')
+print(f"Loading model from: {model_path}")
+
+try:
+    session = ort.InferenceSession(model_path)
+    for inp in session.get_inputs():
+        print(f"ONNX Model Input: {inp.name}, Shape: {inp.shape}, Type: {inp.type}")
+except Exception as e:
+    print(f"Failed to load ONNX model: {str(e)}")
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -37,33 +45,47 @@ def generate_unique_filename(original_filename):
     return f"{timestamp}_{uuid.uuid4().hex[:8]}{ext}"
 
 def predict(image, sess):
-    image = image.resize((256, 256))
-    img_array = np.array(image).astype(np.float32) / 255.0
-    img_array = np.transpose(img_array, (2, 0, 1))
-    img_array = np.expand_dims(img_array, axis=0)
+    image = image.resize((256, 256))  # Resize to model input size
+    image = np.array(image).transpose(2, 0, 1)  # Convert HWC to CHW
+    image = image.astype(np.float32) / 255.0  # Normalize to [0,1]
+    image = (image - 0.5) / 0.5  # Normalize to [-1,1]
+    image = np.expand_dims(image, axis=0)  # Add batch dimension
+    
     input_name = sess.get_inputs()[0].name
-    output_name = sess.get_outputs()[0].name
-    result = sess.run([output_name], {input_name: img_array})
-    output = result[0][0]
-    output = np.transpose(output, (1, 2, 0))
-    output = np.clip(output * 255, 0, 255).astype(np.uint8)
-    return Image.fromarray(output)
+    
+    try:
+        result = sess.run(None, {input_name: image})
+        output = result[0].squeeze().transpose(1, 2, 0)  # Convert CHW back to HWC
+        output = (output + 1) / 2  # Scale back to [0,1]
+        output = (output * 255).astype(np.uint8)  # Denormalize to [0,255]
+        return Image.fromarray(output)
+    except Exception as e:
+        print("Error during inference:", str(e))
+        raise e
 
 @app.route('/process', methods=['POST'])
 def process_image():
     if 'file' not in request.files:
+        print("No file received")
         return jsonify({'error': 'No file part'}), 400
+
     file = request.files['file']
+    print(f"Received file: {file.filename}")
+
     if file.filename == '' or not allowed_file(file.filename):
+        print("Invalid file type")
         return jsonify({'error': 'Invalid file type'}), 400
+
     filename = generate_unique_filename(secure_filename(file.filename))
     input_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     output_path = os.path.join(app.config['OUTPUT_FOLDER'], f"rgb_{filename}")
+
     try:
         file.save(input_path)
-        input_image = Image.open(input_path).convert("RGB")
+        input_image = Image.open(input_path).convert("RGB")  # Ensure it's 3-channel
         output_image = predict(input_image, session)
         output_image.save(output_path)
+
         return jsonify({
             'success': True,
             'original': f'/static/uploads/{filename}',
@@ -72,6 +94,7 @@ def process_image():
     except Exception as e:
         if os.path.exists(input_path):
             os.remove(input_path)
+        print("Processing Error:", str(e))
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/gallery', methods=['GET'])
