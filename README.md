@@ -74,6 +74,18 @@ project/
 └── onnx_inference.py # ONNX inference script
 ```
 
+## Results
+
+For Img - 
+
+real images folder = "backend/static/real"
+fake images folder = "backend/static/outputs"
+
+✅ Average MSE Score: 496.5739  
+✅ Average PSNR Score: 21.17 dB 
+✅ Average SSIM Score: 0.5920
+
+
 ## Notes
 
 - Make sure your virtual environment is activated before running any commands
