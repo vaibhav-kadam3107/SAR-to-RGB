@@ -28,6 +28,7 @@ def compute_ssim(real_dir, fake_dir):
         try:
             ssim_score = ssim(real_img, fake_img, channel_axis=-1, data_range=255)
             scores.append(ssim_score)
+            print(f"   🟡 SSIM for {filename}: {ssim_score:.4f}")
         except ValueError as e:
             print(f"❌ Error processing {filename}: {e}")
             continue
@@ -39,7 +40,7 @@ def compute_ssim(real_dir, fake_dir):
         print("\n❌ No valid image pairs found. Check file names and extensions.")
 
 # Change these paths based on your setup
-real_images_folder = "backend/static/real"
-fake_images_folder = "backend/static/outputs"
+real_images_folder = "Test/real"
+fake_images_folder = "Test/output"
 
 compute_ssim(real_images_folder, fake_images_folder)

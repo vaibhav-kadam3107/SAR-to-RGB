@@ -25,9 +25,10 @@ def compute_mse(real_dir, fake_dir):
         real_img = load_image(real_path)
         fake_img = load_image(fake_path)
 
-        # Flatten to 1D vectors for MSE calculation
+        # Flatten images to 1D for MSE calculation
         mse_score = mean_squared_error(real_img.flatten(), fake_img.flatten())
         scores.append(mse_score)
+        print(f"   🟡 MSE for {filename}: {mse_score:.4f}")
 
     if scores:
         avg_score = np.mean(scores)
@@ -36,7 +37,7 @@ def compute_mse(real_dir, fake_dir):
         print("\n❌ No valid image pairs found. Check file names and extensions.")
 
 # Update paths as per your directory structure
-real_images_folder = "backend/static/real"
-fake_images_folder = "backend/static/outputs"
+real_images_folder = "Test/real"
+fake_images_folder = "Test/output"
 
 compute_mse(real_images_folder, fake_images_folder)

@@ -27,6 +27,7 @@ def compute_psnr(real_dir, fake_dir):
 
         psnr_score = psnr(real_img, fake_img, data_range=255)
         scores.append(psnr_score)
+        print(f"   🟡 PSNR for {filename}: {psnr_score:.2f} dB")
 
     if scores:
         avg_score = np.mean(scores)
@@ -35,7 +36,7 @@ def compute_psnr(real_dir, fake_dir):
         print("\n❌ No valid image pairs found. Check file names and extensions.")
 
 # Change these paths based on your setup
-real_images_folder = "backend/static/real"
-fake_images_folder = "backend/static/outputs"
+real_images_folder = "Test/real"
+fake_images_folder = "Test/output"
 
 compute_psnr(real_images_folder, fake_images_folder)
