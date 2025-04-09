@@ -7,12 +7,11 @@ import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Download, AlertCircle, ImageIcon } from "lucide-react"
 import ImageDropzone from "@/components/image-dropzone"
-import ImageComparison from "@/components/image-comparison"
 import { useToast } from "@/components/ui/use-toast"
 
-type ProcessingStatus = "idle" | "uploading" | "processing" | "complete" | "error"
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"
+
+type ProcessingStatus = "idle" | "uploading" | "processing" | "complete" | "error"
 
 export default function ConvertPage() {
   const [file, setFile] = useState<File | null>(null)
@@ -21,6 +20,7 @@ export default function ConvertPage() {
   const [error, setError] = useState<string | null>(null)
   const [originalImage, setOriginalImage] = useState<string | null>(null)
   const [resultImage, setResultImage] = useState<string | null>(null)
+  const [comparisonHeight, setComparisonHeight] = useState(50)
   const { toast } = useToast()
 
   const handleFileDrop = async (acceptedFiles: File[]) => {
@@ -36,12 +36,10 @@ export default function ConvertPage() {
     setStatus("uploading")
     setProgress(0)
 
-    // Create a FormData object to send the file
     const formData = new FormData()
     formData.append("file", file)
 
     try {
-      // Simulate upload progress
       const uploadInterval = setInterval(() => {
         setProgress((prev) => {
           if (prev >= 90) {
@@ -52,7 +50,6 @@ export default function ConvertPage() {
         })
       }, 300)
 
-      // Send the file to the backend
       const response = await fetch("/api/process-image", {
         method: "POST",
         body: formData,
@@ -66,12 +63,8 @@ export default function ConvertPage() {
       }
 
       const data = await response.json()
-
-      // Set progress to 100% and status to complete
       setProgress(100)
       setStatus("complete")
-
-      // Set the original and processed image URLs
       setOriginalImage(`${API_URL}${data.original}`)
       setResultImage(`${API_URL}${data.processed}`)
 
@@ -102,7 +95,6 @@ export default function ConvertPage() {
   }
 
   const handleAddToGallery = () => {
-    // The image is already saved in the gallery by the backend
     toast({
       title: "Added to gallery",
       description: "The image has been added to your gallery",
@@ -111,7 +103,6 @@ export default function ConvertPage() {
 
   const handleDownload = () => {
     if (resultImage) {
-      // Create a temporary anchor element to trigger the download
       const link = document.createElement("a")
       link.href = resultImage
       link.download = `rgb_${file?.name || "converted_image.jpg"}`
@@ -122,10 +113,18 @@ export default function ConvertPage() {
   }
 
   return (
-    <div className="container mx-auto py-12 px-4 max-w-6xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Convert SAR to RGB</h1>
-        <p className="text-gray-600">Upload your SAR image and our AI will convert it to RGB format</p>
+    <div className="container mx-auto py-12 px-4 max-w-6xl bg-white">
+      <div className="mb-10 text-center">
+        <h1 className="text-4xl font-bold mb-2 text-[#FF9933]">
+          ISRO SAR to RGB Image Converter
+        </h1>
+        <div className="flex justify-center items-center space-x-2 text-xl font-medium">
+          <span className="text-[#FF9933]">सत्यमेव</span>
+          <span className="text-[#000080]">जयते</span>
+          <span className="text-[#138808]">India</span>
+        </div>
+        <p className="text-gray-600 mt-2">Upload your SAR image and our AI will convert it to RGB format</p>
+        <div className="w-full h-1 mt-4 bg-gradient-to-r from-[#FF9933] via-white to-[#138808] rounded" />
       </div>
 
       {error && (
@@ -136,8 +135,8 @@ export default function ConvertPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Upload Image</h2>
+        <Card className="p-6 border-2 border-[#FF9933] rounded-2xl shadow-md">
+          <h2 className="text-xl font-semibold mb-4 text-[#FF9933]">Upload Image</h2>
 
           {status === "idle" ? (
             <ImageDropzone onDrop={handleFileDrop} />
@@ -161,37 +160,78 @@ export default function ConvertPage() {
                     <span>{status === "uploading" ? "Uploading..." : "Processing..."}</span>
                     <span>{progress}%</span>
                   </div>
-                  <Progress value={progress} className="h-2" />
+                  <Progress value={progress} className="h-2 bg-[#138808]/30" />
                 </div>
               )}
 
               <div className="flex gap-4">
-                {status === "complete" ? (
-                  <Button onClick={handleReset} variant="outline">
-                    Process Another Image
-                  </Button>
-                ) : (
-                  <Button onClick={handleReset} variant="outline" disabled={status === "processing"}>
-                    Cancel
-                  </Button>
-                )}
+                <Button
+                  onClick={handleReset}
+                  variant="outline"
+                  className="border-[#FF9933] text-[#FF9933]"
+                  disabled={status === "processing"}
+                >
+                  {status === "complete" ? "Process Another Image" : "Cancel"}
+                </Button>
               </div>
             </div>
           )}
         </Card>
 
-        <Card className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Results</h2>
+        <Card className="p-6 border-2 border-[#138808] rounded-2xl shadow-md">
+          <h2 className="text-xl font-semibold mb-4 text-[#138808]">Results</h2>
 
           {status === "complete" && originalImage && resultImage ? (
             <div className="space-y-6">
-              <ImageComparison originalSrc={originalImage} convertedSrc={resultImage} />
+              {/* Left to Right Comparison */}
+              <div
+                className="relative w-full h-[400px] overflow-hidden rounded-lg border"
+                onMouseMove={(e) => {
+                  if (e.buttons !== 1) return
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const x = e.clientX - rect.left
+                  const newWidth = Math.max(0, Math.min(100, (x / rect.width) * 100))
+                  setComparisonHeight(newWidth)
+                }}
+                onMouseDown={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const x = e.clientX - rect.left
+                  const newWidth = Math.max(0, Math.min(100, (x / rect.width) * 100))
+                  setComparisonHeight(newWidth)
+                }}
+              >
+                <img
+                  src={originalImage}
+                  alt="SAR"
+                  className="absolute inset-0 object-cover w-full h-full z-0"
+                />
+
+                <div
+                  className="absolute top-0 h-full overflow-hidden border-r-2 border-white z-10"
+                  style={{ width: `${comparisonHeight}%` }}
+                >
+                  <img
+                    src={resultImage}
+                    alt="RGB"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+
+                <div
+                  className="absolute top-0 h-full w-1 bg-[#FF9933] cursor-col-resize z-20"
+                  style={{ left: `${comparisonHeight}%` }}
+                />
+              </div>
 
               <div className="flex gap-4">
-                <Button className="bg-[#0066b3] hover:bg-[#004c8c]" onClick={handleDownload}>
+                <Button className="bg-[#000080] hover:bg-[#000066] text-white" onClick={handleDownload}>
                   <Download className="mr-2 h-4 w-4" /> Download RGB Image
                 </Button>
-                <Button variant="outline" onClick={handleAddToGallery}>
+                <Button
+                  variant="outline"
+                  className="border-[#138808] text-[#138808]"
+                  onClick={handleAddToGallery}
+                >
                   Add to Gallery
                 </Button>
               </div>
@@ -209,4 +249,3 @@ export default function ConvertPage() {
     </div>
   )
 }
-
