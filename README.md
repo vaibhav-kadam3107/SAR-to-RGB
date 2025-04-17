@@ -147,14 +147,9 @@ The converted images preserve important details while providing natural colorati
 <summary>View Result Examples</summary>
 <br>
 <p align="center">
-  <strong>Sample 1: Terrain Image</strong><br>
-  <img src="Backend/static/real/sample1.jpg" alt="Original SAR" width="400"/>
-  <img src="Backend/static/outputs/sample1_processed.jpg" alt="Converted RGB" width="400"/>
-</p>
-<p align="center">
-  <strong>Sample 2: Urban Area</strong><br>
-  <img src="Backend/static/real/sample2.jpg" alt="Original SAR" width="400"/>
-  <img src="Backend/static/outputs/sample2_processed.jpg" alt="Converted RGB" width="400"/>
+  <strong>Real Img - Output Img</strong><br>
+  <img src="backend\static\real\rgb_20250408_165816_2f8a55f1.png" alt="Original SAR" width="400"/>
+  <img src="backend\static\outputs\rgb_20250408_165816_2f8a55f1.png" alt="Converted RGB" width="400"/>
 </p>
 </details>
 
@@ -165,19 +160,6 @@ The converted images preserve important details while providing natural colorati
 - The model requires a CUDA-capable GPU for optimal performance
 - Check `config.yaml` for model and training parameters
 - Ensure all required dependencies are installed before running the scripts
-
-## 👥 Team
-
-This project was developed by Final Year Computer Science students from Vishwakarma Institute of Technology, Pune:
-
-- **Vaibhav Kadam** - Team Lead & Developer
-- **Mitali Kachare** - AI Algorithm Implementation
-- **Prajwal Holkar** - Full-stack Developer
-- **Rakhi Bharadwaj** - Project Mentor
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
 
 ## 🔗 Links
 
