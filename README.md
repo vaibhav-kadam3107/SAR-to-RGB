@@ -1,6 +1,33 @@
-# SAR-Image-Colour
+# SAR to RGB Converter
 
-## Setup Instructions
+<div align="center">
+  <img src="Frontend/public/isro-logo.png" alt="ISRO Logo" width="120"/>
+  <h3>SAR to RGB Image Conversion Tool</h3>
+  <p>An advanced tool for converting Synthetic Aperture Radar (SAR) images to RGB format using deep learning</p>
+</div>
+
+## 📋 Project Summary
+
+The SAR to RGB Converter is a cutting-edge application developed by students from Vishwakarma Institute of Technology, Pune. This tool enables researchers, scientists, and analysts to transform complex Synthetic Aperture Radar (SAR) imagery into intuitive RGB visualizations while preserving critical information.
+
+### 🚀 Key Features
+
+- **Advanced AI Processing**: State-of-the-art neural networks trained on satellite imagery
+- **High Precision**: Accurate color mapping preserving critical terrain details
+- **Fast Conversion**: Process complex SAR images in seconds with optimized algorithms
+- **User-friendly Interface**: Intuitive web interface for easy image uploading and conversion
+- **Result Comparison**: View before/after comparisons of processed images
+- **Image Gallery**: Browse previously converted images for reference
+
+### 🛠️ Technologies Used
+
+- **Frontend**: Next.js, React, Tailwind CSS
+- **Backend**: Python, Flask
+- **AI Model**: PyTorch, ONNX Runtime
+- **Image Processing**: OpenCV, PIL
+- **Evaluation Metrics**: PSNR, SSIM, MSE
+
+## 🔧 Setup Instructions
 
 Follow these steps to set up and run the project:
 
@@ -58,39 +85,102 @@ This will:
 - Save processed images to the `output` folder with "_processed" suffix
 - Support multiple image formats (jpg, jpeg, png, bmp, tiff)
 
-## Project Structure
+## 📁 Project Structure
 
 ```
-project/
-├── input/              # Input images for inference
-├── output/            # Processed images from inference
-├── outputs/           # Training and testing outputs
-│   ├── generated_images/  # Generated images from testing
-│   └── metrics/          # Evaluation metrics
-├── config.yaml        # Configuration file
-├── requirements.txt   # Project dependencies
-├── train.py          # Training script
-├── test.py           # Testing script
-└── onnx_inference.py # ONNX inference script
+SAR-to-RGB/
+├── Frontend/                  # Next.js frontend application
+│   ├── app/                   # Next.js app router
+│   │   ├── about/             # About page
+│   │   ├── convert/           # Conversion page
+│   │   ├── gallery/           # Gallery page
+│   │   └── page.tsx           # Home page
+│   ├── components/            # React components
+│   ├── public/                # Static assets
+│   └── styles/                # CSS and styling
+│
+├── Backend/                   # Flask backend server
+│   ├── static/                # Static files
+│   │   ├── real/              # Original SAR images
+│   │   └── outputs/           # Converted RGB images
+│   ├── models/                # Saved AI models
+│   ├── utils/                 # Utility functions
+│   └── app.py                 # Flask application
+│
+├── Model/                     # Model development
+│   ├── input/                 # Input images for inference
+│   ├── output/                # Processed images from inference
+│   ├── outputs/               # Training and testing outputs
+│   │   ├── generated_images/  # Generated images from testing
+│   │   └── metrics/           # Evaluation metrics
+│   ├── config.yaml            # Configuration file
+│   ├── train.py               # Training script
+│   ├── test.py                # Testing script
+│   ├── torch2onnx.py          # PyTorch to ONNX conversion
+│   └── onnx_inference.py      # ONNX inference script
+│
+├── venv/                      # Virtual environment (not tracked)
+├── requirements.txt           # Project dependencies
+└── README.md                  # Project documentation
 ```
 
-## Results
+## 📊 Results
 
-For Img - 
+### Performance Metrics
 
-real images folder = "backend/static/real"
-fake images folder = "backend/static/outputs"
+The model achieves impressive results in converting SAR imagery to RGB format:
 
-✅ Average MSE Score: 496.5739  
-✅ Average PSNR Score: 21.17 dB 
-✅ Average SSIM Score: 0.5920
+| Metric | Value | Interpretation |
+|--------|-------|----------------|
+| **MSE** | 496.5739 | Mean Squared Error between original and generated images |
+| **PSNR** | 21.17 dB | Peak Signal-to-Noise Ratio (higher is better) |
+| **SSIM** | 0.5920 | Structural Similarity Index (closer to 1 is better) |
+
+### Sample Results
+
+The converted images preserve important details while providing natural coloration:
+
+- Original SAR images are stored in: `backend/static/real`
+- Converted RGB images are stored in: `backend/static/outputs`
+
+<details>
+<summary>View Result Examples</summary>
+<br>
+<p align="center">
+  <strong>Sample 1: Terrain Image</strong><br>
+  <img src="Backend/static/real/sample1.jpg" alt="Original SAR" width="400"/>
+  <img src="Backend/static/outputs/sample1_processed.jpg" alt="Converted RGB" width="400"/>
+</p>
+<p align="center">
+  <strong>Sample 2: Urban Area</strong><br>
+  <img src="Backend/static/real/sample2.jpg" alt="Original SAR" width="400"/>
+  <img src="Backend/static/outputs/sample2_processed.jpg" alt="Converted RGB" width="400"/>
+</p>
+</details>
 
 
-## Notes
+## 📝 Notes and Best Practices
 
 - Make sure your virtual environment is activated before running any commands
 - The model requires a CUDA-capable GPU for optimal performance
 - Check `config.yaml` for model and training parameters
 - Ensure all required dependencies are installed before running the scripts
 
+## 👥 Team
 
+This project was developed by Final Year Computer Science students from Vishwakarma Institute of Technology, Pune:
+
+- **Vaibhav Kadam** - Team Lead & Developer
+- **Mitali Kachare** - AI Algorithm Implementation
+- **Prajwal Holkar** - Full-stack Developer
+- **Rakhi Bharadwaj** - Project Mentor
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 🔗 Links
+
+- [GitHub Repository](https://github.com/vaibhav-kadam3107/SAR-to-RGB)
+- [Live Demo](https://sar-to-rgb.vercel.app/) (Coming Soon)
+- [Report Issues](https://github.com/vaibhav-kadam3107/SAR-to-RGB/issues)
