@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
 import { useState, useEffect } from "react"
-import { Menu, X } from "lucide-react"
+import { Menu, X, Github } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function Navbar() {
@@ -17,6 +17,7 @@ export default function Navbar() {
     { name: "Home", path: "/" },
     { name: "Convert", path: "/convert" },
     { name: "Gallery", path: "/gallery" },
+    { name: "About Us", path: "/about" },
   ]
 
   useEffect(() => {
@@ -64,6 +65,15 @@ export default function Navbar() {
                 )}
               </Link>
             ))}
+            <a 
+              href="https://github.com/vaibhav-kadam3107/SAR-to-RGB" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-gray-600 hover:text-primary transition-colors"
+              aria-label="GitHub Repository"
+            >
+              <Github size={20} />
+            </a>
           </nav>
 
           {/* Mobile Menu Button */}
@@ -97,6 +107,16 @@ export default function Navbar() {
                 {item.name}
               </Link>
             ))}
+            <a 
+              href="https://github.com/vaibhav-kadam3107/SAR-to-RGB" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-sm font-medium py-3 px-4 text-gray-600 hover:bg-gray-50"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <Github size={18} />
+              GitHub
+            </a>
           </nav>
         </div>
       )}
