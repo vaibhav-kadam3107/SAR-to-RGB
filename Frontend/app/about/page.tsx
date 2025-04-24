@@ -83,25 +83,21 @@ export default function About() {
             {[
               {
                 name: "Vaibhav Kadam",
-                role: "Final Year Computer Science",
                 bio: "Developer and team lead for the SAR to RGB conversion project.",
                 image: "/placeholder-user.jpg"
               },
               {
                 name: "Mitali Kachare",
-                role: "Final Year Computer Science",
                 bio: "Responsible for AI algorithm implementation and model training.",
                 image: "/placeholder-user.jpg"
               },
               {
                 name: "Prajwal Holkar",
-                role: "Final Year Computer Science",
                 bio: "Full-stack developer handling frontend and backend integration.",
                 image: "/placeholder-user.jpg"
               },
               {
                 name: "Rakhi Bharadwaj",
-                role: "Mentor",
                 bio: "Faculty mentor from Vishwakarma Institute of Technology, guiding the project development.",
                 image: "/placeholder-user.jpg"
               },
@@ -119,7 +115,6 @@ export default function About() {
                   />
                 </div>
                 <h3 className="text-xl font-semibold mb-1">{member.name}</h3>
-                <p className="text-[#0066b3] font-medium mb-3">{member.role}</p>
                 <p className="text-gray-600">{member.bio}</p>
               </div>
             ))}

@@ -183,44 +183,101 @@ export default function ConvertPage() {
 
           {status === "complete" && originalImage && resultImage ? (
             <div className="space-y-6">
-              {/* Left to Right Comparison */}
               <div
-                className="relative w-full h-[400px] overflow-hidden rounded-lg border"
+                className="relative w-full h-[400px] overflow-hidden rounded-lg border shadow-md bg-gray-100"
                 onMouseMove={(e) => {
                   if (e.buttons !== 1) return
                   const rect = e.currentTarget.getBoundingClientRect()
-                  const x = e.clientX - rect.left
-                  const newWidth = Math.max(0, Math.min(100, (x / rect.width) * 100))
-                  setComparisonHeight(newWidth)
+                  const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left))
+                  setComparisonHeight((x / rect.width) * 100)
                 }}
                 onMouseDown={(e) => {
                   const rect = e.currentTarget.getBoundingClientRect()
-                  const x = e.clientX - rect.left
-                  const newWidth = Math.max(0, Math.min(100, (x / rect.width) * 100))
-                  setComparisonHeight(newWidth)
+                  const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left))
+                  setComparisonHeight((x / rect.width) * 100)
+                }}
+                onTouchMove={(e) => {
+                  e.preventDefault()
+                  const touch = e.touches[0]
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const x = Math.max(0, Math.min(rect.width, touch.clientX - rect.left))
+                  setComparisonHeight((x / rect.width) * 100)
+                }}
+                onTouchStart={(e) => {
+                  e.preventDefault()
+                  const touch = e.touches[0]
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const x = Math.max(0, Math.min(rect.width, touch.clientX - rect.left))
+                  setComparisonHeight((x / rect.width) * 100)
                 }}
               >
-                <img
-                  src={originalImage}
-                  alt="SAR"
-                  className="absolute inset-0 object-cover w-full h-full z-0"
-                />
+                <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gray-100">
+                  {/* Original Image (Before - SAR) */}
+                  <img
+                    src={originalImage}
+                    alt="SAR Image (Before)"
+                    className="absolute inset-0 w-full h-full object-contain"
+                  />
 
-                <div
-                  className="absolute top-0 h-full overflow-hidden border-r-2 border-white z-10"
-                  style={{ width: `${comparisonHeight}%` }}
-                >
+                  {/* Processed Image (After - RGB) with clip-path */}
                   <img
                     src={resultImage}
-                    alt="RGB"
-                    className="w-full h-full object-cover"
+                    alt="RGB Image (After)"
+                    className="absolute inset-0 w-full h-full object-contain z-10"
+                    style={{
+                      clipPath: `inset(0 ${100 - comparisonHeight}% 0 0)`,
+                    }}
                   />
                 </div>
 
+                {/* Vertical divider line */}
                 <div
-                  className="absolute top-0 h-full w-1 bg-[#FF9933] cursor-col-resize z-20"
+                  className="absolute top-0 bottom-0 w-1 bg-[#FF9933] z-20 cursor-col-resize"
                   style={{ left: `${comparisonHeight}%` }}
                 />
+
+                {/* Slider Handle */}
+                <div
+                  className="absolute flex items-center justify-center w-8 h-8 -ml-4 bg-white rounded-full shadow-md cursor-col-resize z-40 border-2 border-[#FF9933] hover:border-[#138808] transition-colors"
+                  style={{
+                    left: `${comparisonHeight}%`,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M8 7L2 12L8 17"
+                      stroke="#000080"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M16 7L22 12L16 17"
+                      stroke="#138808"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+
+                {/* "Before" label */}
+                <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium z-20">
+                  Before (SAR)
+                </div>
+
+                {/* "After" label */}
+                <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-md text-sm font-medium z-20">
+                  After (RGB)
+                </div>
               </div>
 
               <div className="flex gap-4">
