@@ -154,6 +154,63 @@ The converted images preserve important details while providing natural colorati
 </details>
 
 
+## 🔍 Image Comparison Tool
+
+The project includes a dedicated tool for comparing real and generated images using the discriminator model from the Pix2Pix GAN. This helps in objectively evaluating how well the generated images match the characteristics of real images.
+
+### Tool Description
+
+The `compare_images.py` script uses the trained discriminator model (`pix2pix_disc_180.pth`) to analyze both real and generated images and produce similarity metrics. The discriminator was trained to distinguish between real and fake images, making it an excellent tool for evaluating generation quality.
+
+### How to Use
+
+```bash
+python compare_images.py --real "path/to/real/image.png" --generated "path/to/generated/image.png"
+```
+
+Optional arguments:
+- `--disc_checkpoint`: Path to the discriminator checkpoint (default: "models/checkpoints/pix2pix_disc_180.pth")
+- `--config`: Path to the config file (default: "config.yaml")
+- `--device`: Device to use (CPU or CUDA, default: uses value from config)
+
+### Understanding the Metrics
+
+The script provides several metrics to evaluate the similarity between real and generated images:
+
+| Metric | Description | Interpretation |
+|--------|-------------|----------------|
+| **Real image score** | How realistic the real image appears to the discriminator | Higher values (closer to 1) indicate the image looks more realistic |
+| **Generated image score** | How realistic the generated image appears to the discriminator | Higher values (closer to 1) indicate the image looks more realistic |
+| **Realism score** | Same as the generated image score | Values above 0.7 indicate high realism |
+| **Similarity ratio** | Ratio of generated image score to real image score | Closer to 1 means the generated image is more similar to real images |
+| **Discriminator difference** | Absolute difference between real and generated scores | Lower values indicate better similarity |
+
+### Example Output
+
+```
+Similarity Analysis Results:
+  Real image score: 0.6072 (higher is more realistic)
+  Generated image score: 0.4862 (higher is more realistic)
+  Realism score: 0.4862 (0-1, higher is more realistic)
+  Similarity ratio: 0.8007 (closer to 1 means more similar)
+  Discriminator difference: 0.1210 (lower means more similar)
+
+Interpretation:
+  The generated image doesn't appear very realistic to the discriminator.
+  The generated image has good similarity to the real image.
+```
+
+In this example:
+- The generated image received a moderate realism score (0.4862)
+- The similarity ratio (0.8007) indicates good preservation of the real image's characteristics
+- The discriminator can still distinguish between the real and generated images, but they share many similar features
+
+This tool is especially useful for:
+1. Comparing different model versions or configurations
+2. Identifying which types of images the model handles well or poorly
+3. Providing quantitative metrics for model quality beyond traditional methods like PSNR or SSIM
+
+
 ## 📝 Notes and Best Practices
 
 - Make sure your virtual environment is activated before running any commands
